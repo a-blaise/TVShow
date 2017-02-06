@@ -22,7 +22,7 @@
         </div>
       </fieldset>  
       <p>
-        <input type="submit" value="Envoyer" />
+        <input id="button" type="submit" value="Envoyer" />
       </p>
     </form>
     <div id="bip" class="display"></div>
@@ -30,10 +30,12 @@
     <script>
       var counter = 10;
       var intervalId = null;
+      document.getElementById("button").disabled = false;
+
       function action() {
         clearInterval(intervalId);
-        document.getElementById("bip").innerHTML = "TERMINE!";  
-        document.getElementById("button").disabled = "disabled";
+        document.getElementById("bip").innerHTML = "TERMINE!"; 
+        document.getElementById("button").disabled = true;
       }
       function bip() {
         document.getElementById("bip").innerHTML = counter + " secondes restantes";
