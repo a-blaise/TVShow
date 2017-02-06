@@ -33,6 +33,7 @@
       function action() {
         clearInterval(intervalId);
         document.getElementById("bip").innerHTML = "TERMINE!";  
+        document.getElementById("button").disabled = "disabled";
       }
       function bip() {
         document.getElementById("bip").innerHTML = counter + " secondes restantes";
