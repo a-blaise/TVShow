@@ -22,18 +22,23 @@
         </div>
       </fieldset>  
       <p>
-        <input type="submit" value="Envoyer" />
+        <input id="button" type="submit" value="Envoyer" />
       </p>
     </form>
     <div id="bip" class="display"></div>
 
     <script>
+      var score = 0;
+      var numberOfQuestions = 1;
       var counter = 6;
       var intervalId = null;
+      document.getElementById("button").disabled = false;
+
       function action() {
         clearInterval(intervalId);
-        document.location.href="cible.php"
-        //document.getElementById("bip").innerHTML = "TERMINE!";  
+        //document.getElementById("bip").innerHTML = "TERMINE!"; 
+        document.location.href="cible.php";
+        document.getElementById("button").disabled = true;
       }
       function bip() {
         document.getElementById("bip").innerHTML = counter + " secondes restantes";
