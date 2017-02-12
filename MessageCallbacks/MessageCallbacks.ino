@@ -1,4 +1,11 @@
 #include <Constellation.h>
+#include <Wire.h>
+#include <Adafruit_TSL2561_U.h>
+#include <pgmspace.h>
+
+#include <Constellation.h>
+
+Adafruit_TSL2561_Unified tsl(TSL2561_ADDR_FLOAT); 
 
 /* Arduino Wifi (ex: Wifi Shield) */
 //#include <SPI.h>
@@ -7,10 +14,6 @@
 /* Arduino Wifi101 (WiFi Shield 101 and MKR1000 board) */
 //#include <SPI.h>
 //#include <WiFi101.h>
-
-/* Arduino Ethernet */
-//#include <SPI.h>
-//#include <Ethernet.h>
 
 /* ESP8266 Wifi */
 #include <ESP8266WiFi.h>
@@ -21,12 +24,18 @@ char ssid[] = "Connectify-AB";
 // char password[] = "killianESP8266";
 char password[] = "coucoutoi";
 
+static boolean initMode = false;
+
 /* Create the Constellation client */
 // Constellation<WiFiClient> constellation("192.168.137.1", 8088, "ESP8266", "QCM", "20a6ce246d11435b05b821a77669eeec31c25bc7");
 Constellation<WiFiClient> constellation("192.168.121.1", 8088, "ESP8266", "QCM", "38c2fe74fc46b4a22a9858916e53e6d285608c8f");
 
 void setup(void) {
   Serial.begin(115200);  delay(10);
+  
+  pinMode(D1, INPUT_PULLUP);
+  pinMode(D2, INPUT_PULLUP);
+  pinMode(D3, INPUT_PULLUP);
   
   // Connecting to Wifi  
   Serial.print("Connecting to ");
@@ -40,32 +49,51 @@ void setup(void) {
   Serial.println("WiFi connected. IP: ");
   Serial.println(WiFi.localIP());
 
-  // il reçoit un message l'amenant à initialiser
+  // Receive a message to be initialized
   constellation.registerMessageCallback("InitPlayers",
     [](JsonObject& json) { 
-      // à remplacer ensuite par l'appui de n'importe lequel des 3 boutons
-      constellation.writeInfo("message d'initialisation bien reçu");
-      constellation.sendMessage(Package, "Quiz", "NewPlayer", "2");
+      initMode = true;
    });
 
-  // il reçoit la question
+  // Receive the question
   constellation.registerMessageCallback("SendQuestion",
     MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
     [](JsonObject& json) { 
-      // à remplacer ensuite par l'appui sur l'un des 3/4 boutons
-      constellation.sendMessage(Package, "Quiz", "SendResponse", "2");
+      initMode = false;
    });
 
   // Declare the package descriptor
   constellation.declarePackageDescriptor();
 
   // Subscribe to message group
-  constellation.subscribeToGroup("ClientQCM"); // clientQCM est l'ESP mais aussi la page web  
+  constellation.subscribeToGroup("ClientQCM"); 
 }
   
 void loop(void) {
-  delay(1000); // Best practice : don't wait here, add a counter or ArduinoThreadc
-
-  // Process incoming message & StateObject updates
+  checkButtonsState();
   constellation.loop();
+}
+
+void checkButtonsState() {
+  static int lastButtonStates[3];
+  int buttonStates[3];
+  for (int state : lastButtonStates) {
+    state = LOW;
+  }
+  buttonStates[0] = digitalRead(D1);
+  buttonStates[1] = digitalRead(D2);
+  buttonStates[2] = digitalRead(D3);
+  
+  for (int i = 0; i < 3; i++) {
+    if (buttonStates[i] != lastButtonStates[i] && buttonStates[i] == LOW) {
+       String s = String(i);
+       char cstr[sizeof(s)];
+       s.toCharArray(cstr, sizeof(cstr));
+       if (initMode == true) {
+        constellation.sendMessage(Package, "Quiz", "NewPlayer", cstr);
+        initMode = false;
+       } else constellation.sendMessage(Package, "Quiz", "SendAnswer", cstr);
+    }  
+    lastButtonStates[i] = buttonStates[i];
+  }
 }

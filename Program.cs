@@ -15,6 +15,7 @@ namespace Quiz
         static int pos = -1;
         static List<string> players = new List<string>();
         static List<Player> finalPlayers = new List<Player>();
+        dynamic data;
 
         static void Main(string[] args)
         {
@@ -25,7 +26,7 @@ namespace Quiz
         {
             PackageHost.WriteInfo("Package starting - IsRunning: {0} - IsConnected: {1}", PackageHost.IsRunning, PackageHost.IsConnected);
 
-            dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("QCM.js"));
+            data = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("QCM.js"));
 
             // Computes the number of questions
             if (data != null)
@@ -37,7 +38,7 @@ namespace Quiz
             }
 
             // Starts a 10-second timer for initialization : players have 10 seconds to click on one button
-            PackageHost.WriteInfo("Beginning of the init phase");
+            PackageHost.WriteInfo("Click on a button to play");
             PackageHost.
                  CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
                  InitPlayers();
@@ -49,19 +50,21 @@ namespace Quiz
         }
 
         [MessageCallback]
-        public void NewPlayer(int response)
+        public void NewPlayer(int answer)
         {
             players.Add(MessageContext.Current.Sender.ConnectionId);
+            PackageHost.WriteInfo("{0} is playing", MessageContext.Current.Sender.ConnectionId);
         }
 
         [MessageCallback]
-        public void SendResponse(int response)
+        public void SendAnswer(int answer)
         {
             foreach (Player p in finalPlayers)
             {
                 if (p.ConnectionId.Equals(MessageContext.Current.Sender.ConnectionId))
                 {
-                    p.CurrentReponse = response;
+                    PackageHost.WriteInfo("Answer {0} from {1}", data.Data[pos].Answers[answer].Answer, p.ConnectionId);
+                    p.CurrentAnswer = answer;
                 }
             }
         }
@@ -69,25 +72,25 @@ namespace Quiz
         // Called when qTimer is finished
         static void EndOfQuestion(object sender, dynamic data)
         {
-            // Retrieve responses
+            // Retrieve answers
             if (pos != -1)
             {
                 foreach (Player p in finalPlayers) {
-                    if (p.CurrentReponse != - 1)
+                    if (p.CurrentAnswer != - 1)
                     {
-                        if ((bool)data.Data[pos].Reponses[p.CurrentReponse].BonneReponse)
+                        if ((bool)data.Data[pos].Answers[p.CurrentAnswer].GoodAnswer)
                         {
-                            PackageHost.WriteInfo("{0} a donné la bonne réponse {1}", p.ConnectionId, data.Data[pos].Reponses[p.CurrentReponse].Reponse);
+                            PackageHost.WriteInfo("{0} gave a good answer", p.ConnectionId);
                             p.Score++;
                         }
                         else
                         {
-                            PackageHost.WriteInfo("{0} a donné la mauvaise réponse {1}", p.ConnectionId, data.Data[pos].Reponses[p.CurrentReponse].Reponse);
+                            PackageHost.WriteInfo("{0} gave a wrong answer", p.ConnectionId);
                         }
                     }
                     else
                     {
-                        PackageHost.WriteInfo("{0} n'a pas répondu", p.ConnectionId);
+                        PackageHost.WriteInfo("{0} does not answered", p.ConnectionId);
                     }
                 }
             }
@@ -96,10 +99,10 @@ namespace Quiz
             pos++;
             if (pos < length)
             {
-                // Reinitialization of all responses
+                // Reinitialization of all answers
                 foreach (Player p in finalPlayers)
                 {
-                    p.CurrentReponse = -1;
+                    p.CurrentAnswer = -1;
                 }
 
                 PackageHost.WriteInfo(data.Data[pos].Label);
@@ -108,6 +111,11 @@ namespace Quiz
                     SendQuestion(data.Data[pos]);
             } else
             {
+                PackageHost.WriteInfo("The scores are : ");
+                foreach (Player p in finalPlayers)
+                {
+                    PackageHost.WriteInfo("{0} out of {1} for {2}", p.Score, length, p.ConnectionId);
+                }
                 Timer aTimer = (Timer)sender;
                 aTimer.Stop();
             }
@@ -116,8 +124,8 @@ namespace Quiz
         // 
         static void EndOfInit(object sender2, dynamic data)
         {
-            PackageHost.WriteInfo("End of the init phase");
-            PackageHost.WriteInfo("The current players are : ");
+            PackageHost.WriteInfo("The game begins !");
+            PackageHost.WriteInfo("The players are : ");
             foreach (String p in players)
             {
                 PackageHost.WriteInfo(p);
@@ -127,25 +135,29 @@ namespace Quiz
 
             Timer initTimer = (Timer)sender2;
             initTimer.Stop();
-            
-            // Start a new timer for each question
-            Timer qTimer = new Timer(10000);
-            // At the end of the time, he retrieves the responses and sends a new question
-            qTimer.Elapsed += (sender, e) => EndOfQuestion(sender, data);
-            qTimer.Start();
+
+            if (finalPlayers.Count > 0)
+            {
+                // Start a new timer for each question
+                Timer qTimer = new Timer(10000);
+                // At the end of the time, he retrieves the answers and sends a new question
+                qTimer.Elapsed += (sender, e) => EndOfQuestion(sender, data);
+                qTimer.Start();
+            }
+            else PackageHost.WriteInfo("No players");
         }
     }
 
     internal class Player
     {
         public string ConnectionId { get; set; }
-        public int CurrentReponse { get; set; }
+        public int CurrentAnswer { get; set; }
         public int Score { get; set; }
 
         public Player(string connectionId)
         {
             this.ConnectionId = connectionId;
-            this.CurrentReponse = -1;
+            this.CurrentAnswer = -1;
             this.Score = 0;
         }
     }

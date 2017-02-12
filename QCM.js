@@ -1,30 +1,30 @@
 ﻿{
     "Data": [
         {
-            "Label":"Quel est le département du Nord ?",
-            "Reponses": [
-                { "Reponse": "49", "BonneReponse": false },
-                { "Reponse": "59", "BonneReponse": true },
-                { "Reponse": "62", "BonneReponse": false },
-                { "Reponse": "69", "BonneReponse": false }
+            "Label":"Which number is the North department ?",
+            "Answers": [
+                { "Answer": "49", "GoodAnswer": false },
+                { "Answer": "59", "GoodAnswer": true },
+                { "Answer": "62", "GoodAnswer": false },
+                { "Answer": "69", "GoodAnswer": false }
             ]
         },
         {
-            "Label":"Quel est la capitale de France ?",
-            "Reponses": [
-                { "Reponse": "Lille", "BonneReponse": false },
-                { "Reponse": "Lyon", "BonneReponse": false },
-                { "Reponse": "Paris", "BonneReponse": true },
-                { "Reponse": "Marseille", "BonneReponse": false }
+            "Label":"Which is the French capital ?",
+            "Answers": [
+                { "Answer": "Lille", "GoodAnswer": false },
+                { "Answer": "Lyon", "GoodAnswer": false },
+                { "Answer": "Paris", "GoodAnswer": true },
+                { "Answer": "Marseille", "GoodAnswer": false }
             ]
         },
         {
-            "Label":"Quel est la meilleure école d'ingénieurs ?",
-            "Reponses": [
-                { "Reponse": "ISEN", "BonneReponse": true },
-                { "Reponse": "Polytechnique", "BonneReponse": false },
-                { "Reponse": "Centrale", "BonneReponse": false },
-                { "Reponse": "ENS", "BonneReponse": false }
+            "Label":"Which is the best French engineering school ?",
+            "Answers": [
+                { "Answer": "ISEN", "GoodAnswer": true },
+                { "Answer": "Polytechnique", "GoodAnswer": false },
+                { "Answer": "Centrale", "GoodAnswer": false },
+                { "Answer": "ENS", "GoodAnswer": false }
             ]
         }
     ]
