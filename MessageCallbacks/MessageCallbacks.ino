@@ -40,11 +40,20 @@ void setup(void) {
   Serial.println("WiFi connected. IP: ");
   Serial.println(WiFi.localIP());
 
+  // il reçoit un message l'amenant à initialiser
+  constellation.registerMessageCallback("InitPlayers",
+    MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
+    [](JsonObject& json) { 
+      // à remplacer ensuite par l'appui de n'importe lequel des 3 boutons
+      constellation.sendMessage(Package, "Quiz", "NewPlayer", "2");
+   });
+
   // il reçoit un message (la réponse ici)
   constellation.registerMessageCallback("SendQuestion",
     MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
     [](JsonObject& json) { 
-      constellation.writeInfo(json["Data"]["Label"]);
+      // j'envoie la réponse
+      constellation.sendMessage(Package, "Quiz", "SendResponse", "2");
    });
 
   // Declare the package descriptor
@@ -56,9 +65,6 @@ void setup(void) {
   
 void loop(void) {
   delay(1000); // Best practice : don't wait here, add a counter or ArduinoThreadc
- 
-  // envoie un message
-  constellation.sendMessage(Package, "Quiz", "SendResponse", "2");
 
   // Process incoming message & StateObject updates
   constellation.loop();
