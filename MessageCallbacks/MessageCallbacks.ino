@@ -42,17 +42,17 @@ void setup(void) {
 
   // il reçoit un message l'amenant à initialiser
   constellation.registerMessageCallback("InitPlayers",
-    MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
     [](JsonObject& json) { 
       // à remplacer ensuite par l'appui de n'importe lequel des 3 boutons
+      constellation.writeInfo("message d'initialisation bien reçu");
       constellation.sendMessage(Package, "Quiz", "NewPlayer", "2");
    });
 
-  // il reçoit un message (la réponse ici)
+  // il reçoit la question
   constellation.registerMessageCallback("SendQuestion",
     MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
     [](JsonObject& json) { 
-      // j'envoie la réponse
+      // à remplacer ensuite par l'appui sur l'un des 3/4 boutons
       constellation.sendMessage(Package, "Quiz", "SendResponse", "2");
    });
 
@@ -60,7 +60,7 @@ void setup(void) {
   constellation.declarePackageDescriptor();
 
   // Subscribe to message group
-  constellation.subscribeToGroup("ClientQCM"); // clientQCM est le client ESP mais aussi la page web  
+  constellation.subscribeToGroup("ClientQCM"); // clientQCM est l'ESP mais aussi la page web  
 }
   
 void loop(void) {

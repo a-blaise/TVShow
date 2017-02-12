@@ -13,9 +13,8 @@ namespace Quiz
     { 
         static int length = 0;
         static int pos = -1;
-        static int responseA = 0;
-        static List<String> players;
-        static List<String> finalPlayers;
+        static List<string> players = new List<string>();
+        static List<Player> finalPlayers = new List<Player>();
 
         static void Main(string[] args)
         {
@@ -28,7 +27,7 @@ namespace Quiz
 
             dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText("QCM.js"));
 
-            // calcul du nombre de questions
+            // Computes the number of questions
             if (data != null)
             {
                 foreach (var q in data.Data)
@@ -37,51 +36,72 @@ namespace Quiz
                 }
             }
 
-            // démarre un timer de 10 secondes pour l'initialisation
+            // Starts a 10-second timer for initialization : players have 10 seconds to click on one button
             PackageHost.WriteInfo("Beginning of the init phase");
+            PackageHost.
+                 CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
+                 InitPlayers();
+
             Timer initTimer = new Timer(10000);
             // à la fin du temps, il envoie une nouvelle question
-            initTimer.Elapsed += (sender, e) => EndOfInit(data);
+            initTimer.Elapsed += (sender, e) => EndOfInit(sender, data);
             initTimer.Start();
-
-            PackageHost.
-                  CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
-                  InitPlayers();
         }
 
         [MessageCallback]
         public void NewPlayer(int response)
         {
-            PackageHost.WriteInfo(MessageContext.Current.Sender.ConnectionId);
             players.Add(MessageContext.Current.Sender.ConnectionId);
         }
 
         [MessageCallback]
         public void SendResponse(int response)
         {
-            responseA = response;
+            foreach (Player p in finalPlayers)
+            {
+                if (p.ConnectionId.Equals(MessageContext.Current.Sender.ConnectionId))
+                {
+                    p.CurrentReponse = response;
+                }
+            }
         }
 
-        // Called when aTimer is finished
+        // Called when qTimer is finished
         static void EndOfQuestion(object sender, dynamic data)
         {
-            // je récupère les réponses
+            // Retrieve responses
             if (pos != -1)
             {
-                PackageHost.WriteInfo("Reponse : {0}", data.Data[pos].Reponses[responseA].Reponse);
-                if ((bool) data.Data[pos].Reponses[responseA].BonneReponse)
-                {
-                    PackageHost.WriteInfo("A a donné la bonne réponse");
-                } else {
-                    PackageHost.WriteInfo("A a donné la mauvaise réponse");
+                foreach (Player p in finalPlayers) {
+                    if (p.CurrentReponse != - 1)
+                    {
+                        if ((bool)data.Data[pos].Reponses[p.CurrentReponse].BonneReponse)
+                        {
+                            PackageHost.WriteInfo("{0} a donné la bonne réponse {1}", p.ConnectionId, data.Data[pos].Reponses[p.CurrentReponse].Reponse);
+                            p.Score++;
+                        }
+                        else
+                        {
+                            PackageHost.WriteInfo("{0} a donné la mauvaise réponse {1}", p.ConnectionId, data.Data[pos].Reponses[p.CurrentReponse].Reponse);
+                        }
+                    }
+                    else
+                    {
+                        PackageHost.WriteInfo("{0} n'a pas répondu", p.ConnectionId);
+                    }
                 }
             }
 
-            // j'envoie une nouvelle question
+            // Sends a new question
             pos++;
             if (pos < length)
             {
-                responseA = 0; // on réinitialise sa réponse
+                // Reinitialization of all responses
+                foreach (Player p in finalPlayers)
+                {
+                    p.CurrentReponse = -1;
+                }
+
                 PackageHost.WriteInfo(data.Data[pos].Label);
                 PackageHost.
                     CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
@@ -94,23 +114,39 @@ namespace Quiz
         }
 
         // 
-        static void EndOfInit(dynamic data)
+        static void EndOfInit(object sender2, dynamic data)
         {
             PackageHost.WriteInfo("End of the init phase");
-            finalPlayers = players;
-            foreach (String p in finalPlayers)
+            PackageHost.WriteInfo("The current players are : ");
+            foreach (String p in players)
             {
                 PackageHost.WriteInfo(p);
+                Player player = new Player(p);
+                finalPlayers.Add(player);
             }
 
-            // à démarrer après la phase d'initialisation..
-            // démarre un nouveau timer pour chaque question
+            Timer initTimer = (Timer)sender2;
+            initTimer.Stop();
+            
+            // Start a new timer for each question
             Timer qTimer = new Timer(10000);
-            // à la fin du temps, il envoie une nouvelle question
+            // At the end of the time, he retrieves the responses and sends a new question
             qTimer.Elapsed += (sender, e) => EndOfQuestion(sender, data);
             qTimer.Start();
         }
+    }
 
+    internal class Player
+    {
+        public string ConnectionId { get; set; }
+        public int CurrentReponse { get; set; }
+        public int Score { get; set; }
+
+        public Player(string connectionId)
+        {
+            this.ConnectionId = connectionId;
+            this.CurrentReponse = -1;
+            this.Score = 0;
+        }
     }
 }
-
