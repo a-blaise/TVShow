@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="MyDemoApp">
+<head>
+    <title>Test API AngularJS</title>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/signalr/jquery.signalr-2.2.1.min.js"></script>
+	<script type="text/javascript" src="https://cdn.myconstellation.io/js/Constellation-1.8.1.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+	<script type="text/javascript" src="https://cdn.myconstellation.io/js/ngConstellation-1.8.1.min.js"></script>
+    
+    <script>
+		var myDemoApp = angular.module('MyDemoApp', ['ngConstellation']);
+		myDemoApp.controller('MyController', ['$scope',  'constellationConsumer', function ($scope, constellation) {
+
+ 			constellation.initializeClient("http://localhost:8088", "123", "Web");
+
+			$scope.constellation = constellation;
+
+ 			constellation.onConnectionStateChanged(function (change) {
+		    	if (change.newState === $.signalR.connectionState.connected) {
+		        	console.log("Je suis connecté !");
+
+		        	constellation.subscribeMessages("ClientQCM");
+					
+ 					constellation.registerMessageCallback("SendQuestion", function (msg) {
+						console.log(msg);
+						$scope.question = msg["Data"].Label;
+						$scope.$apply();
+					});
+					
+		    	}
+			});
+
+ 			constellation.connect();
+
+		}]);
+    </script>
+ 
+</head>
+<body ng-controller="MyController">
+
+<h1>Question : {{ question }}</h1>
+
+</body>
+</html>
