@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" ng-app="MyDemoApp">
 <head>
-    <title>Test API AngularJS</title>
+    <title>Quiz Show</title>
+    <link rel="icon" href="images/favicon.ico" />
+    <link rel="stylesheet" href="style.css">
+
 	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/signalr/jquery.signalr-2.2.1.min.js"></script>
 	<script type="text/javascript" src="https://cdn.myconstellation.io/js/Constellation-1.8.1.min.js"></script>
@@ -15,19 +18,37 @@
  			constellation.initializeClient("http://localhost:8088", "123", "Web");
 
 			$scope.constellation = constellation;
+			$scope.showQuiz = false;
+		    $scope.showScoreData = false;
 
  			constellation.onConnectionStateChanged(function (change) {
 		    	if (change.newState === $.signalR.connectionState.connected) {
 		        	console.log("Je suis connecté !");
 
 		        	constellation.subscribeMessages("ClientQCM");
+
+
 					
  					constellation.registerMessageCallback("SendQuestion", function (msg) {
 						console.log(msg);
-						$scope.question = msg["Data"].Label;
+						$scope.showQuiz = true;
+						$scope.numberOfQuestion = msg["Data"].CurrentQuestion;
+						$scope.question = msg["Data"].Question;
+						$scope.answer1 = msg["Data"].Answers[0].Answer;
+						$scope.answer2 = msg["Data"].Answers[1].Answer;
+						$scope.answer3 = msg["Data"].Answers[2].Answer;
 						$scope.$apply();
 					});
-					
+
+
+					constellation.registerMessageCallback("SendScore", function (msg) {
+						console.log(msg);
+						$scope.showScoreData = true;
+						$scope.score = msg["Data"][0];
+						$scope.totalQuestions = msg["Data"][1];
+						$scope.name = msg["Data"][2];
+					});
+
 		    	}
 			});
 
@@ -39,7 +60,29 @@
 </head>
 <body ng-controller="MyController">
 
-<h1>Question : {{ question }}</h1>
+	<div id="TitrePage">
+		<h1>Quiz TV Show</h1>
+	</div>
+
+	<div id="ContenuQuiz">
+		<div id="Questions" ng-if="showQuiz">
+			<h2>Question n°{{ numberOfQuestion }}</h2>
+			<h1>{{ question }}</h1>
+		</div>
+
+		<div id="Réponses" ng-if="showQuiz">
+			<ol>
+			    <li>{{ answer1 }}</li>
+			    <li>{{ answer2 }}</li>
+			    <li>{{ answer3 }}</li>
+			</ol>
+		</div>
+
+		<div id="Infos" ng-if="showScoreData">
+			<h2>La partie est terminée !</h2>
+			<h2>Le score du joueur {{ name }} est de : {{ score }} / {{ totalQuestions }}</h2>
+		</div>
+	</div>
 
 </body>
 </html>
