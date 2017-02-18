@@ -1,0 +1,20 @@
+body 
+{
+	color: ThreedShadow;
+	background-color:white;
+	background-image:url(images/wallpaper.jpeg);
+	max-width: 100%;
+    height: auto;
+    background-size: cover;
+}
+
+#TitrePage
+{
+	text-align:center;
+}
+
+#ContenuQuiz 
+{
+	width: 50%;
+	margin: auto;
+}
