@@ -43,6 +43,7 @@ void setup(void) {
   display.init(); 
   display.flipScreenVertically(); 
   display.setFont(ArialMT_Plain_10);
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
   
   pinMode(D1, INPUT_PULLUP);
   pinMode(D2, INPUT_PULLUP);
@@ -55,10 +56,17 @@ void setup(void) {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    display.clear();
+    display.drawString(64, 15, "Connexion...");
+    display.display();
   }
 
   Serial.println("WiFi connected. IP: ");
   Serial.println(WiFi.localIP());
+
+  display.clear();
+  display.drawString(64, 15, "ESP connecté");
+  display.display();
 
   JsonObject& settings = constellation.getSettings(); 
   static String machine = String(settings["Machine"].asString());
@@ -67,14 +75,29 @@ void setup(void) {
   constellation.registerMessageCallback("InitPlayers",
     [](JsonObject& json) { 
       initMode = true;
+      display.clear();
+      display.drawString(64, 15, "Appuyez sur un bouton");
+      display.drawString(64, 32, "pour jouer !");
+      display.display();
    });
 
   // Receive the question
   constellation.registerMessageCallback("SendQuestion",
-    MessageCallbackDescriptor().setDescription("Envoi de question").addParameter("q", "qr"),
+    MessageCallbackDescriptor().setDescription("Envoi de question"),
     [](JsonObject& json) { 
       initMode = false;
       t.every(1000,timer,10);
+   });
+
+  // Receive the question
+  constellation.registerMessageCallback("SendScore",
+    MessageCallbackDescriptor().setDescription("Envoi de score").addParameter<int>("score").addParameter<int>("totalQuestions"),
+    [](JsonObject& json) { 
+      int score = json["Data"][0].as<int>();
+      int totalQuestions = json["Data"][1].as<int>();
+      display.clear();
+      display.drawString(64, 15, "Votre score " + String(score) + " / " + String(totalQuestions));
+      display.display();
    });
   
   // Declare the package descriptor
@@ -92,7 +115,6 @@ void loop(void) {
 
 void timer() {
   display.clear();
-  display.setTextAlignment(TEXT_ALIGN_CENTER);
   String numberOfQuestion = String(question);
   display.drawString(64, 15, "Question n°" + numberOfQuestion);
   display.drawProgressBar(10, 32, 100, 12, compteur*10);
@@ -122,6 +144,9 @@ void checkButtonsState() {
        if (initMode == true) {
         constellation.sendMessage(Package, "Quiz", "NewPlayer", cstr);
         initMode = false;
+        display.clear();
+        display.drawString(64, 15, "Vous êtes inscrit !");
+        display.display();
        } else constellation.sendMessage(Package, "Quiz", "SendAnswer", cstr);
     }  
     lastButtonStates[i] = buttonStates[i];
