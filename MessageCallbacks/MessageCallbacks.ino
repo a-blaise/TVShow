@@ -29,9 +29,9 @@ char password[] = "killianESP8266";
 
 Timer t; 
 int compteur = 10;
-int question = 1;
 
 static boolean initMode = false;
+static String currentQuestion;
 
 /* Create the Constellation client */
 Constellation<WiFiClient> constellation("192.168.137.1", 8088, "ESP8266", "QCM", "20a6ce246d11435b05b821a77669eeec31c25bc7");
@@ -48,6 +48,8 @@ void setup(void) {
   pinMode(D1, INPUT_PULLUP);
   pinMode(D2, INPUT_PULLUP);
   pinMode(D3, INPUT_PULLUP);
+  pinMode(D5, OUTPUT); // Green led
+  pinMode(D6, OUTPUT); // Red led
   
   // Connecting to Wifi  
   Serial.print("Connecting to ");
@@ -73,6 +75,7 @@ void setup(void) {
 
   // Receive a message to be initialized
   constellation.registerMessageCallback("InitPlayers",
+  MessageCallbackDescriptor().setDescription("Initialisation des joueurs"),
     [](JsonObject& json) { 
       initMode = true;
       display.clear();
@@ -83,15 +86,32 @@ void setup(void) {
 
   // Receive the question
   constellation.registerMessageCallback("SendQuestion",
-    MessageCallbackDescriptor().setDescription("Envoi de question"),
+     MessageCallbackDescriptor().setDescription("Envoi de question").addParameter<const char*>("currentQuestion"),
     [](JsonObject& json) { 
+      currentQuestion = json["Data"]["CurrentQuestion"].asString();
+      Serial.println("Question n° :" + currentQuestion);
       initMode = false;
       t.every(1000,timer,10);
    });
 
-  // Receive the question
+   // Receive the result of the question
+  constellation.registerMessageCallback("SendAnswerResult",
+     MessageCallbackDescriptor().setDescription("Envoi du résultat").addParameter<const char*>("answerResult"),
+    [](JsonObject& json) { 
+      String answerResult = json["Data"].asString();
+      Serial.println("Resultat :" + answerResult);
+      digitalWrite(D5, HIGH);
+      if (answerResult == "good") {
+        digitalWrite(D5, HIGH);
+      }
+      else {
+        digitalWrite(D6, HIGH);
+      }
+   });
+
+  // Receive the score
   constellation.registerMessageCallback("SendScore",
-    MessageCallbackDescriptor().setDescription("Envoi de score").addParameter<int>("score").addParameter<int>("totalQuestions"),
+    MessageCallbackDescriptor().setDescription("Envoi du score").addParameter<int>("score").addParameter<int>("totalQuestions"),
     [](JsonObject& json) { 
       int score = json["Data"][0].as<int>();
       int totalQuestions = json["Data"][1].as<int>();
@@ -115,14 +135,12 @@ void loop(void) {
 
 void timer() {
   display.clear();
-  String numberOfQuestion = String(question);
-  display.drawString(64, 15, "Question n°" + numberOfQuestion);
+  display.drawString(64, 15, "Question n°" + currentQuestion);
   display.drawProgressBar(10, 32, 100, 12, compteur*10);
   display.display();
   compteur--;
   if (compteur == 0){
     compteur = 10;
-    question++;
   }
 }
 
