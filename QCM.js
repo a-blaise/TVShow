@@ -1,30 +1,30 @@
-﻿{
+{
     "Data": [
         {
-            "Label":"Which number is the North department ?",
+            "Question":"Which number is the North department ?",
+            "CurrentQuestion":"1",
             "Answers": [
                 { "Answer": "49", "GoodAnswer": false },
                 { "Answer": "59", "GoodAnswer": true },
                 { "Answer": "62", "GoodAnswer": false },
-                { "Answer": "69", "GoodAnswer": false }
             ]
         },
         {
-            "Label":"Which is the French capital ?",
+            "Question":"Which is the French capital ?",
+            "CurrentQuestion":"2",
             "Answers": [
                 { "Answer": "Lille", "GoodAnswer": false },
                 { "Answer": "Lyon", "GoodAnswer": false },
                 { "Answer": "Paris", "GoodAnswer": true },
-                { "Answer": "Marseille", "GoodAnswer": false }
             ]
         },
         {
-            "Label":"Which is the best French engineering school ?",
+            "Question":"Which is the best French engineering school ?",
+            "CurrentQuestion":"3",
             "Answers": [
                 { "Answer": "ISEN", "GoodAnswer": true },
                 { "Answer": "Polytechnique", "GoodAnswer": false },
                 { "Answer": "Centrale", "GoodAnswer": false },
-                { "Answer": "ENS", "GoodAnswer": false }
             ]
         }
     ]
