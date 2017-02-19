@@ -1,4 +1,4 @@
-﻿using Constellation;
+using Constellation;
 using Constellation.Package;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Timers;
 namespace Quiz
 {
     public class Program : PackageBase
-    { 
+    {
         static int length = 0;
         static int pos = -1;
         static List<string> players = new List<string>();
@@ -44,6 +44,7 @@ namespace Quiz
                  InitPlayers();
 
             Timer initTimer = new Timer(10000);
+
             // à la fin du temps, il envoie une nouvelle question
             initTimer.Elapsed += (sender, e) => EndOfInit(sender, data);
             initTimer.Start();
@@ -75,17 +76,24 @@ namespace Quiz
             // Retrieve answers
             if (pos != -1)
             {
-                foreach (Player p in finalPlayers) {
-                    if (p.CurrentAnswer != - 1)
+                foreach (Player p in finalPlayers)
+                {
+                    if (p.CurrentAnswer != -1)
                     {
                         if ((bool)data.Data[pos].Answers[p.CurrentAnswer].GoodAnswer)
                         {
                             PackageHost.WriteInfo("{0} gave a good answer", p.ConnectionId);
                             p.Score++;
+                            PackageHost.
+                                CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
+                                SendAnswerResult("good");
                         }
                         else
                         {
                             PackageHost.WriteInfo("{0} gave a wrong answer", p.ConnectionId);
+                            PackageHost.
+                                CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
+                                SendAnswerResult("wrong");
                         }
                     }
                     else
@@ -105,16 +113,20 @@ namespace Quiz
                     p.CurrentAnswer = -1;
                 }
 
-                PackageHost.WriteInfo(data.Data[pos].Label);
+                PackageHost.WriteInfo(data.Data[pos].Question);
                 PackageHost.
                     CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
                     SendQuestion(data.Data[pos]);
-            } else
+            }
+            else
             {
                 PackageHost.WriteInfo("The scores are : ");
                 foreach (Player p in finalPlayers)
                 {
                     PackageHost.WriteInfo("{0} out of {1} for {2}", p.Score, length, p.ConnectionId);
+                    PackageHost.
+                    CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
+                    SendScore(p.Score, length, p.ConnectionId); // /!\ if we can attribute name to these data
                 }
                 Timer aTimer = (Timer)sender;
                 aTimer.Stop();
@@ -132,6 +144,7 @@ namespace Quiz
                 Player player = new Player(p);
                 finalPlayers.Add(player);
             }
+            
 
             Timer initTimer = (Timer)sender2;
             initTimer.Stop();
