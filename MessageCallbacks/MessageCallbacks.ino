@@ -4,7 +4,7 @@
 #include <pgmspace.h>
 #include "Timer.h"
 #include "SSD1306.h" 
-SSD1306 display(0x3c, D5, D6);
+SSD1306 display(0x3c, D7, D8);
 
 #include <Constellation.h>
 
@@ -100,12 +100,20 @@ void setup(void) {
     [](JsonObject& json) { 
       String answerResult = json["Data"].asString();
       Serial.println("Resultat :" + answerResult);
-      digitalWrite(D5, HIGH);
       if (answerResult == "good") {
-        digitalWrite(D5, HIGH);
+        digitalWrite(D5, LOW);
+        digitalWrite(D6, HIGH); //green
+        digitalWrite(D7, LOW);
+      }
+      else if (answerResult == "missed") {
+        digitalWrite(D5, LOW);
+        digitalWrite(D6, LOW); 
+        digitalWrite(D7, HIGH); //blue
       }
       else {
-        digitalWrite(D6, HIGH);
+        digitalWrite(D5, HIGH); //red
+        digitalWrite(D6, LOW);
+        digitalWrite(D7, LOW);
       }
    });
 
@@ -113,6 +121,8 @@ void setup(void) {
   constellation.registerMessageCallback("SendScore",
     MessageCallbackDescriptor().setDescription("Envoi du score").addParameter<int>("score").addParameter<int>("totalQuestions"),
     [](JsonObject& json) { 
+      digitalWrite(D5, LOW);
+      digitalWrite(D6, LOW);
       int score = json["Data"][0].as<int>();
       int totalQuestions = json["Data"][1].as<int>();
       display.clear();
