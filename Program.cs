@@ -99,6 +99,9 @@ namespace Quiz
                     else
                     {
                         PackageHost.WriteInfo("{0} does not answered", p.ConnectionId);
+                        PackageHost.
+                                CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
+                                SendAnswerResult("missed");
                     }
                 }
             }
@@ -126,7 +129,7 @@ namespace Quiz
                     PackageHost.WriteInfo("{0} out of {1} for {2}", p.Score, length, p.ConnectionId);
                     PackageHost.
                     CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
-                    SendScore(p.Score, length, p.ConnectionId); // /!\ if we can attribute name to these data
+                    SendScore(p.Score, length, p.ConnectionId); 
                 }
                 Timer aTimer = (Timer)sender;
                 aTimer.Stop();
