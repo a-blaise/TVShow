@@ -121,6 +121,7 @@ void setup(void) {
   constellation.registerMessageCallback("SendScore",
     MessageCallbackDescriptor().setDescription("Envoi du score").addParameter<int>("score").addParameter<int>("totalQuestions"),
     [](JsonObject& json) { 
+      digitalWrite(D4, LOW); // turn off leds
       digitalWrite(D5, LOW);
       digitalWrite(D6, LOW);
       int score = json["Data"][0].as<int>();
