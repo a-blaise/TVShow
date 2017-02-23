@@ -37,15 +37,13 @@ namespace Quiz
                 }
             }
 
-            // Starts a 10-second timer for initialization : players have 10 seconds to click on one button
             PackageHost.WriteInfo("Click on a button to play");
             PackageHost.
                  CreateMessageProxy(MessageScope.ScopeType.Group, "ClientQCM").
                  InitPlayers();
 
+            // Starts a 10-second timer for initialization : players have 10 seconds to click on one button
             Timer initTimer = new Timer(10000);
-
-            // à la fin du temps, il envoie une nouvelle question
             initTimer.Elapsed += (sender, e) => EndOfInit(sender, data);
             initTimer.Start();
         }

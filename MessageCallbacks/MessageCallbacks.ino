@@ -22,10 +22,10 @@ Adafruit_TSL2561_Unified tsl(TSL2561_ADDR_FLOAT);
 #include <ESP8266WiFi.h>
 
 /* Wifi credentials */
-char ssid[] = "Connectify-AK";
-//char ssid[] = "Connectify-AB";
-char password[] = "killianESP8266";
-//char password[] = "coucoutoi";
+// char ssid[] = "Connectify-AK";
+char ssid[] = "Connectify-AB";
+// char password[] = "killianESP8266";
+char password[] = "coucoutoi";
 
 Timer t; 
 int compteur = 10;
@@ -34,8 +34,8 @@ static boolean initMode = false;
 static String currentQuestion;
 
 /* Create the Constellation client */
-Constellation<WiFiClient> constellation("192.168.137.1", 8088, "ESP8266", "QCM", "20a6ce246d11435b05b821a77669eeec31c25bc7");
-//Constellation<WiFiClient> constellation("192.168.121.1", 8088, "ESP8266", "QCM", "38c2fe74fc46b4a22a9858916e53e6d285608c8f");
+// Constellation<WiFiClient> constellation("192.168.137.1", 8088, "ESP8266", "QCM", "20a6ce246d11435b05b821a77669eeec31c25bc7");
+Constellation<WiFiClient> constellation("192.168.121.1", 8088, "ESP8266", "QCM", "38c2fe74fc46b4a22a9858916e53e6d285608c8f");
 
 void setup(void) {
   Serial.begin(115200);  delay(10);
@@ -48,8 +48,9 @@ void setup(void) {
   pinMode(D1, INPUT_PULLUP);
   pinMode(D2, INPUT_PULLUP);
   pinMode(D3, INPUT_PULLUP);
-  pinMode(D5, OUTPUT); // Green led
-  pinMode(D6, OUTPUT); // Red led
+  pinMode(D4, OUTPUT); // Green led
+  pinMode(D5, OUTPUT); // Red led
+  pinMode(D6, OUTPUT); // Blue led
   
   // Connecting to Wifi  
   Serial.print("Connecting to ");
@@ -101,19 +102,22 @@ void setup(void) {
       String answerResult = json["Data"].asString();
       Serial.println("Resultat :" + answerResult);
       if (answerResult == "good") {
-        digitalWrite(D5, LOW);
-        digitalWrite(D6, HIGH); //green
-        digitalWrite(D7, LOW);
+        Serial.println("good");
+        digitalWrite(D4, HIGH); // green
+        digitalWrite(D5, LOW); 
+        digitalWrite(D6, LOW);
       }
       else if (answerResult == "missed") {
-        digitalWrite(D5, LOW);
-        digitalWrite(D6, LOW); 
-        digitalWrite(D7, HIGH); //blue
+        Serial.println("missed");
+        digitalWrite(D4, LOW);
+        digitalWrite(D5, LOW); 
+        digitalWrite(D6, HIGH); // blue
       }
       else {
-        digitalWrite(D5, HIGH); //red
+        Serial.println("wrong");
+        digitalWrite(D4, LOW); 
+        digitalWrite(D5, HIGH); // red
         digitalWrite(D6, LOW);
-        digitalWrite(D7, LOW);
       }
    });
 
