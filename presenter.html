@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" ng-app="MyDemoApp">
 <head>
+	<meta charset="utf-8"/>
     <title>Quiz Show</title>
     <link rel="icon" href="images/favicon.ico" />
     <link rel="stylesheet" href="style.css">
@@ -15,7 +16,7 @@
 		var myDemoApp = angular.module('MyDemoApp', ['ngConstellation']);
 		myDemoApp.controller('MyController', ['$scope',  'constellationConsumer', function ($scope, constellation) {
 
- 			constellation.initializeClient("http://localhost:8088", "123", "Web");
+ 			constellation.initializeClient("http://localhost:8088", "1234", "Demo");
 
 			$scope.constellation = constellation;
 			$scope.showQuiz = false;
@@ -27,8 +28,6 @@
 
 		        	constellation.subscribeMessages("ClientQCM");
 
-
-					
  					constellation.registerMessageCallback("SendQuestion", function (msg) {
 						console.log(msg);
 						$scope.showQuiz = true;
@@ -39,7 +38,6 @@
 						$scope.answer3 = msg["Data"].Answers[2].Answer;
 						$scope.$apply();
 					});
-
 
 					constellation.registerMessageCallback("SendScore", function (msg) {
 						console.log(msg);
