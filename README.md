@@ -12,7 +12,7 @@ When the game is over, you can visualize the score on the HTML page.
 
 ## Setting up
 
-1. Create a new Constellation project in Visual Studio then copy the files Program.cs and QCM.js in your project. You can easily change the questions in QCM.js
+* Create a new Constellation project in Visual Studio then copy the files Program.cs and QCM.js in your project. You can easily change the questions in QCM.js
 * Upload the code found in ManageESP in the ESP from Arduino software.
 * Launch the HTML page presenter.html. It has to be in the same folder than style.css and wallpaper.jpeg.
 * Finally, run the project on Visual Studio and the game begins !
